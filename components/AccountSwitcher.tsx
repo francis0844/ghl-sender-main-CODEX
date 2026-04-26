@@ -1,0 +1,174 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
+import { ChevronDown, Check, Settings } from "lucide-react";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import type { GHLConnection } from "@/types/ghl-connection";
+
+interface Props {
+  onSwitch?: (connection: GHLConnection) => void;
+}
+
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
+
+export default function AccountSwitcher({ onSwitch }: Props) {
+  const [connections, setConnections] = useState<GHLConnection[]>([]);
+  const [isOpen, setIsOpen] = useState(false);
+  const [isSwitching, setIsSwitching] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
+
+  const loadConnections = useCallback(() => {
+    fetch(`${API_BASE}/api/connections`, { credentials: "include" })
+      .then((r) => r.json())
+      .then((d) => setConnections(d.connections ?? []))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => { loadConnections(); }, [loadConnections]);
+
+  const handleOpen = () => {
+    setIsOpen(true);
+  };
+
+  const active = connections.find((c) => c.is_active);
+
+  const handleSwitch = async (connection: GHLConnection) => {
+    if (connection.is_active || isSwitching) return;
+    setIsSwitching(true);
+    setIsOpen(false);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/ghl/set-active`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ connectionId: connection.id }),
+      });
+      if (res.ok) {
+        setConnections((prev) =>
+          prev.map((c) => ({ ...c, is_active: c.id === connection.id }))
+        );
+        onSwitch?.(connection);
+      }
+    } finally {
+      setIsSwitching(false);
+    }
+  };
+
+  if (connections.length === 0) return null;
+
+  const modal = isOpen ? (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "24px",
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(0,0,0,0.5)",
+          animation: "overlay-in 0.15s ease-out",
+        }}
+        onClick={() => setIsOpen(false)}
+        aria-hidden
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Switch Account"
+        style={{
+          position: "relative",
+          width: "100%",
+          maxWidth: "384px",
+          background: "var(--card)",
+          borderRadius: "24px",
+          boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
+          overflow: "hidden",
+          animation: "sheet-up 0.2s ease-out",
+        }}
+      >
+        <div className="px-5 pt-5 pb-3">
+          <p className="text-base font-semibold text-foreground">Switch Account</p>
+        </div>
+
+        <ul className="px-3 flex flex-col gap-1 overflow-y-auto" style={{ maxHeight: "60vh" }}>
+          {connections.map((conn) => (
+            <li key={conn.id}>
+              <button
+                type="button"
+                onClick={() => handleSwitch(conn)}
+                disabled={isSwitching}
+                className={cn(
+                  "w-full flex items-center gap-3 rounded-xl px-4 py-3 min-h-[56px] text-left transition-colors",
+                  conn.is_active
+                    ? "bg-emerald-50 text-emerald-800"
+                    : "active:bg-muted text-foreground"
+                )}
+              >
+                <div
+                  className={cn(
+                    "h-9 w-9 rounded-full flex items-center justify-center shrink-0 text-sm font-bold",
+                    conn.is_active
+                      ? "bg-emerald-200 text-emerald-800"
+                      : "bg-muted text-muted-foreground"
+                  )}
+                >
+                  {conn.account_label.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold truncate">{conn.account_label}</p>
+                  <p className="text-xs text-muted-foreground font-mono truncate">
+                    {conn.location_id}
+                  </p>
+                </div>
+                {conn.is_active && (
+                  <Check size={16} aria-hidden className="text-emerald-600 shrink-0" />
+                )}
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        <div className="px-3 pt-2 pb-3 border-t border-border mt-2">
+          <Link
+            href="/connections"
+            onClick={() => setIsOpen(false)}
+            className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm text-muted-foreground active:bg-muted transition-colors"
+          >
+            <Settings size={15} aria-hidden />
+            Manage accounts
+          </Link>
+        </div>
+      </div>
+    </div>
+  ) : null;
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={handleOpen}
+        className="flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium text-foreground active:bg-muted transition-colors"
+      >
+        <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
+        <span className="max-w-[160px] truncate">
+          {active?.account_label ?? "No account"}
+        </span>
+        <ChevronDown size={14} aria-hidden className="text-muted-foreground shrink-0" />
+      </button>
+
+      {mounted && createPortal(modal, document.body)}
+    </>
+  );
+}
