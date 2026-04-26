@@ -18,7 +18,7 @@ function isAllowedCorsOrigin(origin: string): boolean {
     "ionic://localhost",
     "http://localhost",
     "https://localhost",
-    "https://app-sender.vercel.app",
+    "https://app-sender-main-codex.vercel.app",
   ]);
 
   if (defaults.has(origin)) return true;

@@ -10,12 +10,14 @@ import ContactSearch from "@/components/ContactSearch";
 import ComposeMessage from "@/components/ComposeMessage";
 import RecentSends from "@/components/RecentSends";
 import AccountSwitcher from "@/components/AccountSwitcher";
+import SmartListBulkSender from "@/components/SmartListBulkSender";
 
 const RECENT_KEY = "ghl_recent_sends";
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
 export default function Home() {
   const router = useRouter();
+  const [mode, setMode] = useState<"single" | "bulk">("single");
   const [selected, setSelected] = useState<Contact | null>(null);
   const [recentSends, setRecentSends] = useState<SendRecord[]>(() => {
     if (typeof window === "undefined") return [];
@@ -91,22 +93,53 @@ export default function Home() {
       </header>
 
       <main className="flex-1 px-4 py-5 max-w-lg mx-auto w-full">
-        <ContactSearch selected={selected} onSelect={setSelected} />
+        <div className="rounded-2xl border border-border bg-muted p-1 flex gap-1 mb-4">
+          <button
+            type="button"
+            onClick={() => setMode("single")}
+            className={`flex-1 min-h-[44px] rounded-xl text-sm font-semibold transition-colors ${
+              mode === "single"
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground active:bg-card/60"
+            }`}
+          >
+            Single Send
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("bulk")}
+            className={`flex-1 min-h-[44px] rounded-xl text-sm font-semibold transition-colors ${
+              mode === "bulk"
+                ? "bg-card text-foreground shadow-sm"
+                : "text-muted-foreground active:bg-card/60"
+            }`}
+          >
+            Smart Lists
+          </button>
+        </div>
 
-        {/* Compose section — rendered by page so state can be reset on Resend */}
-        {selected && (
-          <div id="compose-area" className="mt-4">
-            <ComposeMessage
-              key={fillKey}
-              contact={selected}
-              defaultChannel={composeDefaults?.channel}
-              defaultMessage={composeDefaults?.message}
-              onSent={handleSent}
-            />
-          </div>
+        {mode === "single" ? (
+          <>
+            <ContactSearch selected={selected} onSelect={setSelected} />
+
+            {/* Compose section — rendered by page so state can be reset on Resend */}
+            {selected && (
+              <div id="compose-area" className="mt-4">
+                <ComposeMessage
+                  key={fillKey}
+                  contact={selected}
+                  defaultChannel={composeDefaults?.channel}
+                  defaultMessage={composeDefaults?.message}
+                  onSent={handleSent}
+                />
+              </div>
+            )}
+
+            <RecentSends records={recentSends} onResend={handleResend} />
+          </>
+        ) : (
+          <SmartListBulkSender />
         )}
-
-        <RecentSends records={recentSends} onResend={handleResend} />
 
         <footer className="mt-10 pb-28 text-center">
           <p className="text-xs text-muted-foreground/50 select-none">

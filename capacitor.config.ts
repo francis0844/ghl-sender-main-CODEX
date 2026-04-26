@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   webDir: "out",
 
   server: {
-    allowNavigation: ["app-sender.vercel.app"],
+    allowNavigation: ["app-sender-main-codex.vercel.app"],
   },
 
   // Deep-link URL scheme for OAuth callback (native only).

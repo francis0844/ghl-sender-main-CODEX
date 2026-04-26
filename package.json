@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:mobile": "NEXT_PUBLIC_API_BASE_URL=https://app-sender.vercel.app MOBILE_BUILD=true node scripts/build-mobile.mjs",
+    "build:mobile": "NEXT_PUBLIC_API_BASE_URL=https://app-sender-main-codex.vercel.app MOBILE_BUILD=true node scripts/build-mobile.mjs",
     "open:ios": "npx cap open ios",
     "open:android": "npx cap open android",
     "start": "next start",

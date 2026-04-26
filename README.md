@@ -8,6 +8,9 @@ A mobile-first web app (and Capacitor iOS/Android wrapper) that lets you search 
 
 - **Multi-account manager** — connect multiple GHL locations, switch the active one instantly
 - **Contact search** — debounced live search against the GHL contacts API
+- **Contacts list view** — browse paginated contacts, not just search matches
+- **Smart list filters** — build/save reusable filters (query, tag, has email/phone)
+- **Bulk messaging** — send SMS/Email/WhatsApp to up to 50 selected contacts in one action
 - **Channel selector** — SMS, Email, or WhatsApp
 - **Live message preview** — iMessage-style chat bubble
 - **SMS character counter** — warning at 140, hard limit at 160
@@ -29,8 +32,8 @@ A mobile-first web app (and Capacitor iOS/Android wrapper) that lets you search 
 
 1. Go to [marketplace.gohighlevel.com](https://marketplace.gohighlevel.com) → **Create App**.
 2. Under **Redirect URIs**, add:
-   - `https://app-sender.vercel.app/api/auth/callback` (production)
-   - `https://app-sender.vercel.app/api/auth/callback?source=mobile` (production mobile)
+   - `https://app-sender-main-codex.vercel.app/api/auth/callback` (production)
+   - `https://app-sender-main-codex.vercel.app/api/auth/callback?source=mobile` (production mobile)
    - `https://YOUR-NGROK-ID.ngrok-free.app/api/auth/callback` (local dev — see below)
    - `com.andyjorgensen.ghlsender://callback` (native app deep link)
 3. Under **Scopes**, enable:
@@ -138,8 +141,8 @@ See the [Capacitor section](#capacitor-ios--android-1) below for mobile build in
 ### Deep link setup for native OAuth
 
 After OAuth completes in the in-app browser, GHL redirects to:
-- **Web:** `https://app-sender.vercel.app/api/auth/callback`
-- **Native OAuth callback:** `https://app-sender.vercel.app/api/auth/callback?source=mobile`
+- **Web:** `https://app-sender-main-codex.vercel.app/api/auth/callback`
+- **Native OAuth callback:** `https://app-sender-main-codex.vercel.app/api/auth/callback?source=mobile`
 - **Native:** `com.andyjorgensen.ghlsender://callback`
 
 Register the custom scheme in the native projects:
