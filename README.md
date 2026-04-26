@@ -9,8 +9,9 @@ A mobile-first web app (and Capacitor iOS/Android wrapper) that lets you search 
 - **Multi-account manager** — connect multiple GHL locations, switch the active one instantly
 - **Contact search** — debounced live search against the GHL contacts API
 - **Contacts list view** — browse paginated contacts, not just search matches
-- **Smart list filters** — build/save reusable filters (query, tag, has email/phone)
+- **Native Smart List import** — pulls available smart lists from the active sub-account (when exposed by GHL API)
 - **Bulk messaging** — send SMS/Email/WhatsApp to up to 50 selected contacts in one action
+- **Multi-page app sections** — dedicated `Contact List`, `Settings`, and `Connector` pages
 - **Channel selector** — SMS, Email, or WhatsApp
 - **Live message preview** — iMessage-style chat bubble
 - **SMS character counter** — warning at 140, hard limit at 160

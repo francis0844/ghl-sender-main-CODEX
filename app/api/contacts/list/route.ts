@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getActiveGHLToken, GHLNotConnectedError } from "@/lib/ghl-token";
+import { fetchContactsForNativeSmartList } from "@/lib/ghl-smart-lists";
 
 const GHL_API = "https://services.leadconnectorhq.com";
 const DEFAULT_LIMIT = 25;
@@ -37,6 +38,8 @@ function extractTags(tags: RawTag[] | undefined): string[] {
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const query = params.get("query")?.trim() ?? "";
+  const normalizedQuery = query.toLowerCase();
+  const smartListId = params.get("smartListId")?.trim() ?? "";
   const page = Math.max(1, Number.parseInt(params.get("page") ?? "1", 10) || 1);
   const limit = clampLimit(Number.parseInt(params.get("limit") ?? `${DEFAULT_LIMIT}`, 10));
   const requireEmail = params.get("requireEmail") === "true";
@@ -63,8 +66,31 @@ export async function GET(request: NextRequest) {
   };
 
   let data: { contacts?: GHLContact[] };
+  let smartListSource: string | null = null;
 
-  if (query.length >= 2) {
+  if (smartListId) {
+    const smartListResult = await fetchContactsForNativeSmartList({
+      accessToken,
+      locationId,
+      smartListId,
+      page,
+      limit,
+    });
+
+    if (smartListResult) {
+      data = { contacts: smartListResult.contacts as GHLContact[] };
+      smartListSource = smartListResult.endpoint ?? null;
+    } else {
+      return NextResponse.json(
+        {
+          error: "smart_list_not_supported",
+          message:
+            "Native Smart List import is not available for this account/API scope.",
+        },
+        { status: 422 }
+      );
+    }
+  } else if (query.length >= 2) {
     const searchRes = await fetch(`${GHL_API}/contacts/search`, {
       method: "POST",
       headers,
@@ -127,6 +153,14 @@ export async function GET(request: NextRequest) {
   });
 
   const contacts = mapped.filter((contact) => {
+    if (
+      normalizedQuery &&
+      !`${contact.name} ${contact.email ?? ""} ${contact.phone ?? ""}`
+        .toLowerCase()
+        .includes(normalizedQuery)
+    ) {
+      return false;
+    }
     if (requireEmail && !contact.email) return false;
     if (requirePhone && !contact.phone) return false;
     if (tag && !contact.tags.some((t) => t.toLowerCase().includes(tag))) return false;
@@ -138,5 +172,6 @@ export async function GET(request: NextRequest) {
     page,
     limit,
     hasMore: (data.contacts ?? []).length === limit,
+    smartListSource,
   });
 }

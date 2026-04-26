@@ -11,6 +11,7 @@ import ComposeMessage from "@/components/ComposeMessage";
 import RecentSends from "@/components/RecentSends";
 import AccountSwitcher from "@/components/AccountSwitcher";
 import SmartListBulkSender from "@/components/SmartListBulkSender";
+import AppSectionTabs from "@/components/AppSectionTabs";
 
 const RECENT_KEY = "ghl_recent_sends";
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
@@ -82,8 +83,8 @@ export default function Home() {
           <div className="flex items-center gap-1">
             <AccountSwitcher />
             <Link
-              href="/connections"
-              aria-label="Manage accounts"
+              href="/settings"
+              aria-label="Open settings"
               className="h-10 w-10 flex items-center justify-center rounded-full text-muted-foreground active:bg-muted transition-colors"
             >
               <Settings size={18} aria-hidden />
@@ -93,6 +94,8 @@ export default function Home() {
       </header>
 
       <main className="flex-1 px-4 py-5 max-w-lg mx-auto w-full">
+        <AppSectionTabs />
+
         <div className="rounded-2xl border border-border bg-muted p-1 flex gap-1 mb-4">
           <button
             type="button"
